@@ -1,6 +1,7 @@
 package com.example.newsapp
 
 //for kotlin synthetic
+import android.annotation.SuppressLint
 import kotlinx.android.synthetic.main.activity_main.*
 
 import android.graphics.Color.alpha
@@ -15,12 +16,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import com.example.newsapp.adapters.RecyclerAdapter
+import com.example.newsapp.api.NewsApiJSON
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.Exception
 
@@ -40,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setUpRecyclerView()
         makeAPIRequest()
     }
 
@@ -63,38 +70,70 @@ class MainActivity : AppCompatActivity() {
         linksList.add(link)
     }
 
+    @SuppressLint("CheckResult")
     private fun makeAPIRequest() {
         progressBar.visibility = View.VISIBLE
 
         val api = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            //todo: add CallAdapterFactory
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build()
             .create(APIRequest::class.java)
 
         GlobalScope.launch(Dispatchers.IO) {
-            try {
-                val response = api.getNews() //get method from our Interface
 
-                for (article in response.news) {
-                    Log.i("MainActivity", "Result = ${article}")
-                    addToList(article.title, article.description, article.image, article.url)
-                }
-
-                //update the UI
-                withContext(Dispatchers.Main) {
-                    setUpRecyclerView()
-                    fadeInFromBlack()
-                    progressBar.visibility = View.GONE
-                }
-            } catch (e: Exception) {
-                Log.i("MainActivity", "${e.toString()}")
-
-                withContext(Dispatchers.Main) {
-                    attemptRequestAgain()
-                }
-            }
+                api.getNews()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ newsApiJSON: NewsApiJSON ->
+                        run {
+                            Log.i("MainActivity", "Result = ${newsApiJSON.news}")
+                            for (article in newsApiJSON.news) {
+                                addToList(
+                                    article.title,
+                                    article.description,
+                                    article.image,
+                                    article.url
+                                )
+                            }
+                            //update the UI
+                            setUpRecyclerView()
+                            fadeInFromBlack()
+                            progressBar.visibility = View.GONE
+                        }
+                    }, { throwable ->
+                        run {
+                            Log.i("MainActivity", "${throwable.toString()}")
+                            attemptRequestAgain()
+                        }
+                    });
         }
+
+//        GlobalScope.launch(Dispatchers.IO) {
+//            try {
+//                val response = api.getNews() //get method from our Interface
+//
+//                for (article in response.news) {
+//                    Log.i("MainActivity", "Result = ${article}")
+//                    addToList(article.title, article.description, article.image, article.url)
+//                }
+//
+//                //update the UI
+//                withContext(Dispatchers.Main) {
+//                    setUpRecyclerView()
+//                    fadeInFromBlack()
+//                    progressBar.visibility = View.GONE
+//                }
+//            } catch (e: Exception) {
+//                Log.i("MainActivity", "${e.toString()}")
+//
+//                withContext(Dispatchers.Main) {
+//                    attemptRequestAgain()
+//                }
+//            }
+//        }
     }
 
     private fun attemptRequestAgain() {
