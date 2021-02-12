@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 import com.example.newsapp.adapters.RecyclerAdapter
 import com.example.newsapp.api.NewsApiJSON
+import com.example.newsapp.databinding.ActivityMainBinding
+import com.google.android.material.internal.NavigationMenu
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -37,6 +39,8 @@ const val BASE_URL = "https://api.currentsapi.services"
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityMainBinding
+
     lateinit var countDownTimer: CountDownTimer
     private var titleList = mutableListOf<String>()
     private var descList = mutableListOf<String>()
@@ -47,22 +51,104 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
+
+
+
         setContentView(R.layout.activity_main)
 
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setUpTabBar()
         setSrchBtnListener()
         setUpRecyclerView()
         makeAPIRequest()
+        etSearchNews.visibility = View.GONE
+        srchBtn.visibility = View.GONE
+
+
+        bottomNavBar.setItemSelected(R.id.nav_all,true)
 
 //        setSwipeRefreshListener()
     }
 
+    private fun setUpTabBar() {
+        binding.bottomNavBar.setOnItemSelectedListener {
+            when (it) {
+                R.id.nav_all -> {
+                    makeAPIRequest()
+                    etSearchNews.setText(null)
+                    etSearchNews.visibility = View.GONE
+                    srchBtn.visibility = View.GONE
+                }
+                R.id.nav_us -> {
+                    makeRegionRequest("US")
+                    etSearchNews.visibility = View.GONE
+                    srchBtn.visibility = View.GONE
+                }
+                R.id.nav_fr -> {
+                    makeRegionRequest("FR")
+                    etSearchNews.visibility = View.GONE
+                    srchBtn.visibility = View.GONE
+                }
+
+                R.id.nav_srch_enable -> {
+                    etSearchNews.visibility = View.VISIBLE
+                    srchBtn.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    private fun makeRegionRequest(region: String) {
+        progressBar.visibility = View.VISIBLE
+
+        val api = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(APIRequest::class.java)
+
+        GlobalScope.launch(Dispatchers.IO) {
+
+            api.getRegionNews("/v1/search?country=" + region + "&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ newsApiJSON: NewsApiJSON ->
+                    run {
+//                        Log.i("MainActivity", "Result = ${newsApiJSON.news}")
+                        clearLists()
+                        for (article in newsApiJSON.news) {
+                            addToList(
+                                article.title,
+                                article.description,
+                                article.image,
+                                article.url
+                            )
+                        }
+                        //update the UI
+                        setUpRecyclerView()
+                        fadeInFromBlack()
+                        progressBar.visibility = View.GONE
+                    }
+                }, { throwable ->
+                    run {
+                        Log.i("MainActivity", "${throwable.toString()}")
+                        attemptRequestAgain()
+                    }
+                });
+        }
+
+    }
+
     private fun setSrchBtnListener() {
-        srchBtn.setOnClickListener({
+        srchBtn.setOnClickListener {
             if (etSearchNews.text.toString().isEmpty())
-                Toast.makeText(it.context,"Enter keywords!",Toast.LENGTH_LONG).show()
+                Toast.makeText(it.context, "Enter keywords!", Toast.LENGTH_LONG).show()
             else
                 makeKeyWordApiRequest(etSearchNews.text.toString())
-        })
+        }
     }
 
     private fun makeKeyWordApiRequest(keyword: String) {
@@ -77,12 +163,12 @@ class MainActivity : AppCompatActivity() {
 
         GlobalScope.launch(Dispatchers.IO) {
 
-            api.getKeyWordNews("/v1/search?keywords="+keyword+"&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
+            api.getKeyWordNews("/v1/search?keywords=" + keyword + "&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ newsApiJSON: NewsApiJSON ->
                     run {
-                        Log.i("MainActivity", "Result = ${newsApiJSON.news}")
+//                        Log.i("MainActivity", "Result = ${newsApiJSON.news}")
                         clearLists()
                         for (article in newsApiJSON.news) {
                             addToList(
@@ -137,6 +223,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("CheckResult")
     private fun makeAPIRequest() {
+        clearLists()
         progressBar.visibility = View.VISIBLE
 
         val api = Retrofit.Builder()

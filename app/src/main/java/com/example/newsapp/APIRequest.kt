@@ -15,4 +15,7 @@ interface APIRequest {
 
     @GET//("/v1/search?keywords=Amazon&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
     fun getKeyWordNews(@Url url:String):Observable<NewsApiJSON>
+
+    @GET
+    fun getRegionNews(@Url url: String):Observable<NewsApiJSON>
 }
