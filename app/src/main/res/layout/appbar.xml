@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/myToolBar"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@android:color/holo_purple"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+<!--    <TextView-->
+<!--        android:layout_width="20dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="What's new for today?"-->
+<!--        android:textSize="Seardp"-->
+<!--        android:textStyle="bold|italic" />-->
+    <EditText
+        android:id="@+id/etSearchNews"
+        android:hint="Enter key word"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"/>
+
+    <ImageButton
+        android:id="@+id/srchBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="100dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/srch_btn"
+
+        />
+
+</androidx.appcompat.widget.Toolbar>

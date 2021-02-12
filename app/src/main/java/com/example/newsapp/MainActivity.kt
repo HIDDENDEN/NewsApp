@@ -3,14 +3,17 @@ package com.example.newsapp
 //for kotlin synthetic
 import android.annotation.SuppressLint
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.appbar.*
 
 import android.graphics.Color.alpha
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -46,9 +49,71 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setSrchBtnListener()
         setUpRecyclerView()
         makeAPIRequest()
+
+//        setSwipeRefreshListener()
     }
+
+    private fun setSrchBtnListener() {
+        srchBtn.setOnClickListener({
+            if (etSearchNews.text.toString().isEmpty())
+                Toast.makeText(it.context,"Enter keywords!",Toast.LENGTH_LONG).show()
+            else
+                makeKeyWordApiRequest(etSearchNews.text.toString())
+        })
+    }
+
+    private fun makeKeyWordApiRequest(keyword: String) {
+        progressBar.visibility = View.VISIBLE
+
+        val api = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(APIRequest::class.java)
+
+        GlobalScope.launch(Dispatchers.IO) {
+
+            api.getKeyWordNews("/v1/search?keywords="+keyword+"&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ newsApiJSON: NewsApiJSON ->
+                    run {
+                        Log.i("MainActivity", "Result = ${newsApiJSON.news}")
+                        clearLists()
+                        for (article in newsApiJSON.news) {
+                            addToList(
+                                article.title,
+                                article.description,
+                                article.image,
+                                article.url
+                            )
+                        }
+                        //update the UI
+                        setUpRecyclerView()
+                        fadeInFromBlack()
+                        progressBar.visibility = View.GONE
+                    }
+                }, { throwable ->
+                    run {
+                        Log.i("MainActivity", "${throwable.toString()}")
+                        attemptRequestAgain()
+                    }
+                });
+        }
+
+    }
+
+    private fun clearLists() {
+        titleList.clear()
+        descList.clear()
+        imagesList.clear()
+        linksList.clear()
+    }
+
 
     private fun fadeInFromBlack() {
         v_blackScreen.animate().apply {
@@ -77,38 +142,37 @@ class MainActivity : AppCompatActivity() {
         val api = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            //todo: add CallAdapterFactory
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build()
             .create(APIRequest::class.java)
 
         GlobalScope.launch(Dispatchers.IO) {
 
-                api.getNews()
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ newsApiJSON: NewsApiJSON ->
-                        run {
-                            Log.i("MainActivity", "Result = ${newsApiJSON.news}")
-                            for (article in newsApiJSON.news) {
-                                addToList(
-                                    article.title,
-                                    article.description,
-                                    article.image,
-                                    article.url
-                                )
-                            }
-                            //update the UI
-                            setUpRecyclerView()
-                            fadeInFromBlack()
-                            progressBar.visibility = View.GONE
+            api.getNews()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ newsApiJSON: NewsApiJSON ->
+                    run {
+                        Log.i("MainActivity", "Result = ${newsApiJSON.news}")
+                        for (article in newsApiJSON.news) {
+                            addToList(
+                                article.title,
+                                article.description,
+                                article.image,
+                                article.url
+                            )
                         }
-                    }, { throwable ->
-                        run {
-                            Log.i("MainActivity", "${throwable.toString()}")
-                            attemptRequestAgain()
-                        }
-                    });
+                        //update the UI
+                        setUpRecyclerView()
+                        fadeInFromBlack()
+                        progressBar.visibility = View.GONE
+                    }
+                }, { throwable ->
+                    run {
+                        Log.i("MainActivity", "${throwable.toString()}")
+                        attemptRequestAgain()
+                    }
+                });
         }
 
 //        GlobalScope.launch(Dispatchers.IO) {
@@ -152,4 +216,13 @@ class MainActivity : AppCompatActivity() {
 
         countDownTimer.start()
     }
+
+
+//    private fun setSwipeRefreshListener() {
+//        swipeRefreshLayout.setOnRefreshListener {
+//            v_blackScreen.visibility=View.VISIBLE
+//            makeAPIRequest()
+//            swipeRefreshLayout.isRefreshing = false
+//        }
+//    }
 }
