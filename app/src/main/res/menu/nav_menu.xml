@@ -20,11 +20,7 @@
         android:icon="@drawable/ic_fr"
         app:cnb_iconColor = "#3AB79E"/>
 
-    <item
-        android:id="@+id/nav_srch_enable"
-        android:title="Search activated"
-        android:icon="@drawable/ic_search"
-        app:cnb_iconColor = "#3F51B5"/>
+
 
 
 </menu>

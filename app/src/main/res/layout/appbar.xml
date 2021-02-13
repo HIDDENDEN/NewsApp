@@ -15,20 +15,20 @@
 <!--        android:text="What's new for today?"-->
 <!--        android:textSize="Seardp"-->
 <!--        android:textStyle="bold|italic" />-->
-    <EditText
-        android:id="@+id/etSearchNews"
-        android:hint="Enter key word"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"/>
+<!--    <EditText-->
+<!--        android:id="@+id/etSearchNews"-->
+<!--        android:hint="Enter key word"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"/>-->
 
-    <ImageButton
-        android:id="@+id/srchBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="100dp"
-        android:contentDescription="@string/app_name"
-        android:src="@drawable/srch_btn"
+<!--    <ImageButton-->
+<!--        android:id="@+id/srchBtn"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginLeft="100dp"-->
+<!--        android:contentDescription="@string/app_name"-->
+<!--        android:src="@drawable/srch_btn"-->
 
-        />
+<!--        />-->
 
 </androidx.appcompat.widget.Toolbar>

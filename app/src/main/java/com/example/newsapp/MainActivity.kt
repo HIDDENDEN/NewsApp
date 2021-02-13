@@ -11,8 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.Menu
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,7 +39,7 @@ import java.lang.Exception
 
 const val BASE_URL = "https://api.currentsapi.services"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
 
     private lateinit var binding: ActivityMainBinding
 
@@ -59,17 +61,29 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.myToolBar)
+        toolbar.setBackground(getDrawable(R.drawable.toolbar_gradient))
+        setSupportActionBar(toolbar)
+
+        val bottomToolBar = findViewById<com.ismaeldivita.chipnavigation.ChipNavigationBar>(R.id.bottomNavBar)
+        bottomToolBar.setBackground(getDrawable(R.drawable.bottom_toolbar_gradient))
+        setSupportActionBar(toolbar)
+
         setUpTabBar()
-        setSrchBtnListener()
+//        setSrchBtnListener()
         setUpRecyclerView()
+
+
+
         makeAPIRequest()
-        etSearchNews.visibility = View.GONE
-        srchBtn.visibility = View.GONE
+//        etSearchNews.visibility = View.GONE
+//        srchBtn.visibility = View.GONE
 
 
-        bottomNavBar.setItemSelected(R.id.nav_all,true)
+        bottomNavBar.setItemSelected(R.id.nav_all, true)
 
-//        setSwipeRefreshListener()
+
     }
 
     private fun setUpTabBar() {
@@ -77,25 +91,22 @@ class MainActivity : AppCompatActivity() {
             when (it) {
                 R.id.nav_all -> {
                     makeAPIRequest()
-                    etSearchNews.setText(null)
-                    etSearchNews.visibility = View.GONE
-                    srchBtn.visibility = View.GONE
+//                    etSearchNews.setText(null)
+//                    etSearchNews.visibility = View.GONE
+//                    srchBtn.visibility = View.GONE
                 }
                 R.id.nav_us -> {
                     makeRegionRequest("US")
-                    etSearchNews.visibility = View.GONE
-                    srchBtn.visibility = View.GONE
+//                    etSearchNews.visibility = View.GONE
+//                    srchBtn.visibility = View.GONE
                 }
                 R.id.nav_fr -> {
                     makeRegionRequest("FR")
-                    etSearchNews.visibility = View.GONE
-                    srchBtn.visibility = View.GONE
+//                    etSearchNews.visibility = View.GONE
+//                    srchBtn.visibility = View.GONE
                 }
 
-                R.id.nav_srch_enable -> {
-                    etSearchNews.visibility = View.VISIBLE
-                    srchBtn.visibility = View.VISIBLE
-                }
+
             }
         }
     }
@@ -142,14 +153,14 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun setSrchBtnListener() {
-        srchBtn.setOnClickListener {
-            if (etSearchNews.text.toString().isEmpty())
-                Toast.makeText(it.context, "Enter keywords!", Toast.LENGTH_LONG).show()
-            else
-                makeKeyWordApiRequest(etSearchNews.text.toString())
-        }
-    }
+//    private fun setSrchBtnListener() {
+//        srchBtn.setOnClickListener {
+//            if (etSearchNews.text.toString().isEmpty())
+//                Toast.makeText(it.context, "Enter keywords!", Toast.LENGTH_LONG).show()
+//            else
+//                makeKeyWordApiRequest(etSearchNews.text.toString())
+//        }
+//    }
 
     private fun makeKeyWordApiRequest(keyword: String) {
         progressBar.visibility = View.VISIBLE
@@ -304,12 +315,34 @@ class MainActivity : AppCompatActivity() {
         countDownTimer.start()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
-//    private fun setSwipeRefreshListener() {
-//        swipeRefreshLayout.setOnRefreshListener {
-//            v_blackScreen.visibility=View.VISIBLE
-//            makeAPIRequest()
-//            swipeRefreshLayout.isRefreshing = false
-//        }
-//    }
+        menuInflater.inflate(R.menu.nav_srch_menu, menu)
+        val search = menu?.findItem(R.id.nav_search)
+        val searchView = search?.actionView as SearchView
+        searchView.queryHint = "Search something!"
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+
+                if (query.toString().isEmpty()) {
+                    Toast.makeText(applicationContext, "Enter keywords!", Toast.LENGTH_LONG).show()
+                    return true
+                } else {
+                    makeKeyWordApiRequest(query.toString())
+                    return true
+                }
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return true
+            }
+
+        })
+
+        return super.onCreateOptionsMenu(menu)
+    }
 }
+
+
