@@ -265,12 +265,12 @@ class MainActivity : AppCompatActivity() {
     private fun attemptRequestAgain() {
         countDownTimer = object : CountDownTimer(5 * 1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                makeAPIRequest()
                 countDownTimer.cancel()
             }
 
             override fun onFinish() {
-                Toast.makeText(applicationContext,"Couldn't get data... Trying again in ${5000 / 1000} seconds",Toast.LENGTH_SHORT).show()
+                makeAPIRequest()
+                countDownTimer.cancel()
                 Log.i("MainActivity", "Couldn't get data... Trying again in ${5000 / 1000} seconds")
             }
 
