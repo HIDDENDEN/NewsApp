@@ -1,7 +1,8 @@
 package com.example.newsapp
 
-//for kotlin synthetic
+
 import android.annotation.SuppressLint
+import android.content.res.Resources
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.appbar.*
 
@@ -39,7 +40,7 @@ import java.lang.Exception
 
 const val BASE_URL = "https://api.currentsapi.services"
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -53,37 +54,30 @@ class MainActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
-
-
-
         setContentView(R.layout.activity_main)
 
+        //for bottom navigation bar
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        //setting gradient color for top toolbar
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.myToolBar)
         toolbar.setBackground(getDrawable(R.drawable.toolbar_gradient))
         setSupportActionBar(toolbar)
 
-        val bottomToolBar = findViewById<com.ismaeldivita.chipnavigation.ChipNavigationBar>(R.id.bottomNavBar)
+        val bottomToolBar =
+            findViewById<com.ismaeldivita.chipnavigation.ChipNavigationBar>(R.id.bottomNavBar)
         bottomToolBar.setBackground(getDrawable(R.drawable.bottom_toolbar_gradient))
         setSupportActionBar(toolbar)
 
+        //setting up onClick reaction for switching regions
         setUpTabBar()
-//        setSrchBtnListener()
+
         setUpRecyclerView()
 
-
-
         makeAPIRequest()
-//        etSearchNews.visibility = View.GONE
-//        srchBtn.visibility = View.GONE
-
 
         bottomNavBar.setItemSelected(R.id.nav_all, true)
-
-
     }
 
     private fun setUpTabBar() {
@@ -91,19 +85,12 @@ class MainActivity : AppCompatActivity(){
             when (it) {
                 R.id.nav_all -> {
                     makeAPIRequest()
-//                    etSearchNews.setText(null)
-//                    etSearchNews.visibility = View.GONE
-//                    srchBtn.visibility = View.GONE
                 }
                 R.id.nav_us -> {
                     makeRegionRequest("US")
-//                    etSearchNews.visibility = View.GONE
-//                    srchBtn.visibility = View.GONE
                 }
                 R.id.nav_fr -> {
                     makeRegionRequest("FR")
-//                    etSearchNews.visibility = View.GONE
-//                    srchBtn.visibility = View.GONE
                 }
 
 
@@ -112,6 +99,7 @@ class MainActivity : AppCompatActivity(){
     }
 
     private fun makeRegionRequest(region: String) {
+        fadeInToBlack()
         progressBar.visibility = View.VISIBLE
 
         val api = Retrofit.Builder()
@@ -123,7 +111,7 @@ class MainActivity : AppCompatActivity(){
 
         GlobalScope.launch(Dispatchers.IO) {
 
-            api.getRegionNews("/v1/search?country=" + region + "&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
+            api.getRegionNews("/v1/search?country=" + region + "&language=en&apiKey=" + getString(R.string.apiKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ newsApiJSON: NewsApiJSON ->
@@ -153,16 +141,8 @@ class MainActivity : AppCompatActivity(){
 
     }
 
-//    private fun setSrchBtnListener() {
-//        srchBtn.setOnClickListener {
-//            if (etSearchNews.text.toString().isEmpty())
-//                Toast.makeText(it.context, "Enter keywords!", Toast.LENGTH_LONG).show()
-//            else
-//                makeKeyWordApiRequest(etSearchNews.text.toString())
-//        }
-//    }
-
     private fun makeKeyWordApiRequest(keyword: String) {
+        fadeInToBlack()
         progressBar.visibility = View.VISIBLE
 
         val api = Retrofit.Builder()
@@ -174,7 +154,7 @@ class MainActivity : AppCompatActivity(){
 
         GlobalScope.launch(Dispatchers.IO) {
 
-            api.getKeyWordNews("/v1/search?keywords=" + keyword + "&language=en&apiKey=gATYOlZGxcSIIXQiryJp1ZRgq6147Wvq3IIDbF2irUfAkpUn")
+            api.getKeyWordNews("/v1/search?keywords=" + keyword + "&language=en&apiKey=" + getString(R.string.apiKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ newsApiJSON: NewsApiJSON ->
@@ -219,6 +199,13 @@ class MainActivity : AppCompatActivity(){
         }.start()
     }
 
+    private fun fadeInToBlack() {
+        v_blackScreen.animate().apply {
+            alpha(1f)
+            duration = 500
+        }
+    }
+
     private fun setUpRecyclerView() {
 
         rv_recyclerView.layoutManager = LinearLayoutManager(applicationContext)
@@ -234,6 +221,7 @@ class MainActivity : AppCompatActivity(){
 
     @SuppressLint("CheckResult")
     private fun makeAPIRequest() {
+        fadeInToBlack()
         clearLists()
         progressBar.visibility = View.VISIBLE
 
@@ -246,7 +234,7 @@ class MainActivity : AppCompatActivity(){
 
         GlobalScope.launch(Dispatchers.IO) {
 
-            api.getNews()
+            api.getNews("/v1/latest-news?language=en&apiKey=" + getString(R.string.apiKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ newsApiJSON: NewsApiJSON ->
@@ -272,30 +260,6 @@ class MainActivity : AppCompatActivity(){
                     }
                 });
         }
-
-//        GlobalScope.launch(Dispatchers.IO) {
-//            try {
-//                val response = api.getNews() //get method from our Interface
-//
-//                for (article in response.news) {
-//                    Log.i("MainActivity", "Result = ${article}")
-//                    addToList(article.title, article.description, article.image, article.url)
-//                }
-//
-//                //update the UI
-//                withContext(Dispatchers.Main) {
-//                    setUpRecyclerView()
-//                    fadeInFromBlack()
-//                    progressBar.visibility = View.GONE
-//                }
-//            } catch (e: Exception) {
-//                Log.i("MainActivity", "${e.toString()}")
-//
-//                withContext(Dispatchers.Main) {
-//                    attemptRequestAgain()
-//                }
-//            }
-//        }
     }
 
     private fun attemptRequestAgain() {
@@ -306,7 +270,7 @@ class MainActivity : AppCompatActivity(){
             }
 
             override fun onFinish() {
-
+                Toast.makeText(applicationContext,"Couldn't get data... Trying again in ${5000 / 1000} seconds",Toast.LENGTH_SHORT).show()
                 Log.i("MainActivity", "Couldn't get data... Trying again in ${5000 / 1000} seconds")
             }
 
@@ -315,6 +279,7 @@ class MainActivity : AppCompatActivity(){
         countDownTimer.start()
     }
 
+    //top nav bar menu configuring
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
         menuInflater.inflate(R.menu.nav_srch_menu, menu)
