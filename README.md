@@ -5,6 +5,7 @@ Mobile app for browsing news from different regions. Build using
   - Region selector
   - Search news by keywords
   - Used API: https://currentsapi.services/en
+  - Used retrofit2, rxJava2
 
 ### Instruction
 
