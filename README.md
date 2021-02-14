@@ -13,3 +13,5 @@ Install the dependencies and devDependencies and start the server.
 
 ### Screenshots
 ![alt text](https://github.com/[HIDDENDEN]/[NewsApp]/blob/[master]/app/screenshots/1st.jpg?raw=true)
+HIDDENDEN/NewsApp/blob/master/app/screenshots/1st.jpg
+https://github.com/HIDDENDEN/NewsApp/blob/master/app/screenshots/1st.jpg
