@@ -13,3 +13,12 @@ Install the dependencies and devDependencies and start the server.
 
 ### Screenshots
 ![alt text](/app/screenshots/1st.jpg )
+------
+![alt text](/app/screenshots/2nd.jpg )
+------
+![alt text](/app/screenshots/3rd.jpg )
+------
+![alt text](/app/screenshots/4th.jpg )
+------
+![alt text](/app/screenshots/5th.jpg )
+
